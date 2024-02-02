@@ -1,41 +1,58 @@
 package com.example.greetingcard
 
+
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.greetingcard.ui.theme.GreetingCardTheme
+import kotlin.math.cos
+import kotlin.math.sin
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +63,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     border = BorderStroke(1.dp, Color.Black),
                 ) {
-                    TunerApp()
+                    TunerScreen()
                 }
             }
         }
@@ -56,16 +73,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun TopAppBarWithIcons() {
-    // Define the surface color and elevation for your top app bar here
-    val surfaceColor = Color(0xFF1E1E1E) // example color
-    val elevation = 4.dp // example elevation
+    val surfaceColor = Color(0xFF1E1E1E)
+    val elevation = 4.dp
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp), // Standard height for top app bar
-        color = surfaceColor,
-        shadowElevation = elevation
+            .height(56.dp),
+        color = surfaceColor, shadowElevation = elevation
     ) {
         Row(
             modifier = Modifier
@@ -74,11 +89,9 @@ fun TopAppBarWithIcons() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                imageVector = Icons.Filled.Menu,
+            Icon(imageVector = Icons.Filled.PlayArrow,
                 contentDescription = "Menu",
-                modifier = Modifier.clickable { /* Handle menu click */ }
-            )
+                modifier = Modifier.clickable { /* Handle menu click */ })
             Text(text = "Tuner", color = Color.White)
             IconButton(onClick = { /* Handle settings click */ }) {
                 Icon(
@@ -99,10 +112,10 @@ fun TopAppBarWithIconsPreview() {
 
 
 @Composable
-fun TuningMeter(centsOff: Float) {
+fun TuningMeter(centsOff: Float, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.BottomCenter,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(200.dp)
             .padding(16.dp)
@@ -110,213 +123,175 @@ fun TuningMeter(centsOff: Float) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeWeight = 8.dp.toPx()
             val needleWidth = 4.dp.toPx()
-            val needleHeight = size.height * 0.6f
+            val needleHeight = size.height * 0.7f
+            val radius = size.width.coerceAtMost(size.height) - strokeWeight
+            val center = Offset(x = size.width / 2, y = size.height)
 
-            // Calculate the radius of the arc
-            val radius = size.width.coerceAtMost(size.height)  - strokeWeight
-
-            // Draw the semicircular arc for the meter
             drawArc(
                 color = Color.Gray,
                 startAngle = 180f,
                 sweepAngle = 180f,
                 useCenter = false,
-                topLeft = Offset(
-                    x = size.width / 2 - radius,
-                    y = size.height - (radius)
-                ),
-                size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2),
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWeight)
+                topLeft = Offset(x = center.x - radius, y = center.y - radius),
+                size = Size(radius * 2, radius * 2),
+                style = Stroke(width = strokeWeight)
             )
 
-            // Draw the needle
-            // save() // Save the current state of the canvas
-            rotate(
-                degrees = 120f * centsOff / 50f, // Assuming the full scale is 100 cents
-                pivot = Offset(size.width / 2f, size.height),
-                block = {
+            val scaleMarkings = 10
+            for (i in -scaleMarkings..scaleMarkings) {
+                val angle = 180f / (scaleMarkings * 2) * i
+                val innerRadius = if (i % 5 == 0) radius - 20.dp.toPx() else radius - 10.dp.toPx()
+                val start = Offset(
+                    x = center.x + radius * sin(Math.toRadians(angle.toDouble() + 180.0)).toFloat(),
+                    y = center.y + radius * cos(Math.toRadians(angle.toDouble() + 180.0)).toFloat()
+                )
+                val end = Offset(
+                    x = center.x + innerRadius * sin(Math.toRadians(angle.toDouble() + 180.0)).toFloat(),
+                    y = center.y + innerRadius * cos(Math.toRadians(angle.toDouble() + 180.0)).toFloat()
+                )
+                drawLine(
+                    color = Color.Black,
+                    start = start,
+                    end = end,
+                    strokeWidth = if (i % 5 == 0) 4.dp.toPx() else 2.dp.toPx()
+                )
+
+                if (i % 5 == 0) {
+                    val textRadius = radius - 30.dp.toPx()
+                    val textOffset = Offset(
+                        x = center.x + textRadius * sin(Math.toRadians(angle.toDouble() + 180.0)).toFloat(),
+                        y = center.y + textRadius * cos(Math.toRadians(angle.toDouble() + 180.0)).toFloat()
+                    )
+                    drawContext.canvas.nativeCanvas.drawText("${i * 5}",
+
+                        textOffset.x,
+                        textOffset.y,
+                        android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                            color = Color.Black.toArgb()
+                            textSize = 40f
+                            textAlign = android.graphics.Paint.Align.CENTER
+                        })
+
+                }
+
+
+            }
+
+            rotate(degrees = 180f * centsOff / 50f,
+                pivot = center, block = {
                     drawLine(
                         color = Color.Red,
-                        start = Offset(x = size.width / 2f, y = size.height),
-                        end = Offset(x = size.width / 2f, y = size.height - needleHeight),
+                        start = center,
+                        end = Offset(x = center.x, y = center.y - needleHeight),
                         strokeWidth = needleWidth
                     )
-                }
-            )
-            drawLine(
-                color = Color.Red,
-                start = Offset(x = size.width / 2f, y = size.height),
-                end = Offset(x = size.width / 2f, y = size.height - needleHeight),
-                strokeWidth = needleWidth
-            )
-            //restore() // Restore the previous state of the canvas
+                })
 
-            // Draw the center line
             drawLine(
                 color = Color.Green,
-                start = Offset(x = size.width / 2f, y = size.height),
-                end = Offset(x = size.width / 2f, y = size.height - needleHeight),
+                start = center,
+                end = Offset(x = center.x, y = center.y - needleHeight),
                 strokeWidth = needleWidth / 2
             )
         }
 
-        // Text indicator for cents off
-        Text(
-            text = "${centsOff.toInt()}¢",
-            modifier = Modifier.align(Alignment.TopCenter),
-            color = Color.White
-        )
     }
 }
 
 
 @Composable
-fun TunerReadout(
-    detectedFrequency: String = "A4: 440Hz", // Default values for preview
-    centsOff: Int = 30
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Frequency Display
-        Text(
-            text = detectedFrequency,
-            // Add your text style here
-        )
-
-        // Cent off Display
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // This would be a custom composable if you want to make it look like the one in the image
-            // For simplicity, we're using Text composables here
-            Text(
-                text = if (centsOff > 0) "+${centsOff}c" else "${centsOff}c",
-                // Add your text style here
-            )
-
-            // You could add a visual indicator (e.g., arrow) here to represent the cents off
-        }
-
-        // The tuning indicator bar
-        Box(
+fun FrequencyBars(modifier: Modifier = Modifier) {
+    BoxWithConstraints(modifier = modifier) {
+        Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(6.dp)
-                .background(Color.LightGray),
-            contentAlignment = Alignment.Center
+                .height(50.dp)
         ) {
-            // The indicator position should be calculated based on the cents off value
-            // For now, we're placing it statically in the center
-            Box(
-                modifier = Modifier
-                    .width(3.dp)
-                    .height(20.dp)
-                    .background(if (centsOff == 0) Color.Green else Color.Red),
-                // contentAlignment = Alignment.Center
-            )
+            val width = size.width
+            val barWidth = width / 60
+            val barHeights = List(60) { kotlin.random.Random.nextFloat() }
+            val height = size.height
+            barHeights.forEachIndexed { index, heightFraction ->
+                val barHeight = height * heightFraction
+                drawRect(
+                    color = Color.Blue,
+                    topLeft = Offset(x = barWidth * index, y = this.size.height - barHeight),
+                    size = Size(width = barWidth, height = barHeight)
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun TunerReadoutPreview() {
-    TunerReadout()
-}
-
 
 @Composable
-fun TunerApp() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+fun NoteIndicator(note: String, modifier: Modifier = Modifier) {
+    Box(
+        contentAlignment = Alignment.Center, modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
     ) {
-        // Top bar with settings and other icons
-        //TopAppBarWithIcons()
-
-        // Tuner readout section
-        TunerReadout()
-
-        // Large letter indicating the note
-        NoteIndicator(note = "A")
-
-        // Tuning meter display
-        TuningMeter(centsOff = -3f)
-
-        // Frequency graph at the bottom
-        FrequencyGraph()
+        Text(
+            text = note, style = typography.titleLarge.copy(
+                fontSize = 100.sp, // You can adjust the size to match your design
+                fontWeight = FontWeight.Bold
+            ), color = Color.Black // Assuming a dark theme, but you can customize it
+        )
     }
 }
 
 
+
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun FrequencyGraph() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .padding(16.dp)
-            .background(Color.DarkGray),
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
+fun TunerScreen() {
+    var pitch by remember { mutableIntStateOf(440) }
+    var isTuning by remember { mutableStateOf(false) }
+    Scaffold {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(text = "Tuner", style = typography.titleLarge)
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Mock data for the graph
-            val points = listOf(
-                Offset(0f, height / 2),
-                // ... Add more points to create a mock waveform
-                Offset(width, height / 2)
+            Text(text = "A4 Frequency Adjustment", fontSize = 16.sp)
+            Slider(
+                value = pitch.toFloat(),
+                onValueChange = { pitch = it.toInt() },
+                valueRange = 430f..450f,
+                steps = 20
             )
+            Text(text = "$pitch Hz", style = typography.titleLarge)
+            Spacer(modifier = Modifier.height(20.dp))
+            TuningMeter(centsOff = 0f)
 
-            val path = Path().apply {
-                // Start at the first point
-                moveTo(points.first().x, points.first().y)
-
-                // Create a line for each point
-                for (point in points) {
-                    lineTo(point.x, point.y)
+            Box(
+                contentAlignment = Alignment.Center, modifier = Modifier
+                    .size(100.dp)
+                    .padding(16.dp)
+            ) {
+                Canvas(modifier = Modifier.size(90.dp)) {
+                    // Draw your pitch representation here
+                }
+                if (isTuning) {
+                    Text(text = "Tuning...", color = Color.Black)
+                } else {
+                    Text(text = "Ready", color = Color.Black)
                 }
             }
 
-            // Draw the graph within a clipping rectangle
-            /* clipRect(Rect(0f, 0f, width, height)) {
-                 drawPath(
-                     path = path,
-                     color = Color.White
-                 )
-             }*/
+            Spacer(modifier = Modifier.height(20.dp))
+            NoteIndicator(note = "A")
+            Button(onClick = { isTuning = !isTuning }) {
+                Text(text = if (isTuning) "Stop" else "Start")
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            FrequencyBars()
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun FrequencyGraphPreview() {
-    FrequencyGraph()
-}
-
-
-@Composable
-fun NoteIndicator(note: String) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = note,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontSize = 100.sp, // You can adjust the size to match your design
-                fontWeight = FontWeight.Bold
-            ),
-            color = Color.White // Assuming a dark theme, but you can customize it
-        )
     }
 }
 
@@ -330,5 +305,5 @@ fun PreviewNoteIndicator() {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    TunerApp()
+    TunerScreen()
 }
