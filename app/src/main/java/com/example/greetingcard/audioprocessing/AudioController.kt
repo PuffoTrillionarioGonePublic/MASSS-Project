@@ -15,8 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.util.Arrays
-import kotlin.math.sin
 
 
 object AudioController {
