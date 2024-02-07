@@ -107,11 +107,12 @@ fun TunerScreen() {
                     var dots by remember { mutableIntStateOf(1) }
                     LaunchedEffect(Unit) {
                         while (isTuning) {
-                            dots = (dots + 1) % 4
                             delay(500)
+                            dots = dots % 3 + 1
                         }
                     }
-                    Text(text = "Tuning".plus(".".repeat(dots)))
+                    val text = "Tuning".plus(".".repeat(dots)).plus(" ".repeat(3 - dots))
+                    Text(text = text, style = MaterialTheme.typography.bodyLarge)
                 } else {
                     Text(text = "Ready")
                 }
