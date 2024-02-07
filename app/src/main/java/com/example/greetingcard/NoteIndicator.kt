@@ -25,7 +25,7 @@ fun NoteIndicator(note: String, modifier: Modifier = Modifier) {
         fontSize = if (fontSize < 24.sp) 24.sp else fontSize
 
         Text(
-            text = note, style = MaterialTheme.typography.titleLarge.copy(
+            text = note, style = MaterialTheme.typography.bodyLarge.copy(
                 fontSize = fontSize, // Ensure a minimum size
                 fontWeight = FontWeight.Bold
             )

@@ -21,7 +21,7 @@ object AudioController {
 
     private val MY_PERMISSIONS_RECORD_AUDIO = 1
 
-    fun startRecording(context: Context, f: (ShortArray, DoubleArray) -> Unit) {
+    fun startRecording(context: Context, onPitchDetected: (Float) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             val sampleRate = 44100 // You can choose a different sample rate
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
@@ -70,7 +70,11 @@ object AudioController {
                    // for (i in doubleBuffer.indices) {
                     //    f(shortBuffer2[i], doubleBuffer2[i])
                     //}
-                    f(shortBuffer2, doubleBuffer2)
+                    //(shortBuffer2, doubleBuffer2)
+                    //PitchDetector.detectPitch(shortBuffer2, doubleBuffer2, onPitchDetected)
+                    val floatBuffer = doubleBuffer.map { it.toFloat() }.toFloatArray()
+                    val pitch = yinPitchDetection(floatBuffer, sampleRate)
+                    onPitchDetected(pitch)
                 }
 
                 audioRecord.stop()

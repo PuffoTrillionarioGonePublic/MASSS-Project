@@ -33,8 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.greetingcard.audioprocessing.AudioController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -51,7 +53,7 @@ fun TunerScreen() {
 
 
     Scaffold(topBar = {
-        TunerAppBar(title = "Tuner", onNavIconPressed = { })//activityViewModel.openDrawer() })
+        TunerAppBar(title = "PuffoTuner", onNavIconPressed = { })//activityViewModel.openDrawer() })
     }) {
         Column(
             modifier = Modifier
@@ -62,7 +64,7 @@ fun TunerScreen() {
             Spacer(modifier = Modifier.height(20.dp))
 
             Slider(
-                value = referencePitch.toFloat(),
+                value = referencePitch,
                 onValueChange = { referencePitch = it },
                 valueRange = 430f..450f,
                 steps = 20
@@ -76,14 +78,6 @@ fun TunerScreen() {
             val phase = remember { Animatable(0f) }
 
             LaunchedEffect(Unit) {
-                // Simulate external updates for frequency
-                launch {
-                    while (true) {
-                        delay(1000) // Update frequency every second
-                        pitch = (1..3).random().toFloat() // Random new frequency for demonstration
-                    }
-                }
-                
                 phase.animateTo(
                     targetValue = (phase.value + 2*PI).toFloat(), // Increment phase to move the wave
                     animationSpec = infiniteRepeatable(
@@ -100,14 +94,24 @@ fun TunerScreen() {
                     animationSpec = tween(durationMillis = 1000) // Smooth transition over 1 second
                 )
             }
-
-            FrequencyWave(frequency = animatableFrequency.value, phase = phase.value)
+            if (isTuning) {
+                FrequencyWave(frequency = animatableFrequency.value, phase = phase.value)
+            } else {
+                FrequencyWave(frequency = 0f, phase = 0f)
+            }
 
             Box(
                 contentAlignment = Alignment.Center, modifier = Modifier
             ) {
                 if (isTuning) {
-                    Text(text = "Tuning...")
+                    var dots by remember { mutableIntStateOf(1) }
+                    LaunchedEffect(Unit) {
+                        while (isTuning) {
+                            dots = (dots + 1) % 4
+                            delay(500)
+                        }
+                    }
+                    Text(text = "Tuning".plus(".".repeat(dots)))
                 } else {
                     Text(text = "Ready")
                 }
@@ -115,7 +119,14 @@ fun TunerScreen() {
 
             Spacer(modifier = Modifier.height(20.dp))
             NoteIndicator(note = "A")
-            Button(onClick = { isTuning = !isTuning }) {
+            val context = LocalContext.current
+            Button(onClick = {
+                isTuning = !isTuning
+                if (isTuning) {
+                    AudioController.startRecording(context = context, onPitchDetected = { pitch = it })
+                }
+
+            }) {
                 Text(text = if (isTuning) "Stop" else "Start")
             }
             Spacer(modifier = Modifier.height(20.dp))
