@@ -69,9 +69,11 @@ private fun DrawScope.drawTuningArc(center: Offset, radius: Float, strokeWeight:
         style = Stroke(width = strokeWeight)
     )
 }
+
 private fun DrawScope.calculateMarkingRadius(i: Int, radius: Float): Float {
     return if (i % 5 == 0) radius - 20.dp.toPx() else radius - 10.dp.toPx()
 }
+
 private fun DrawScope.drawScaleMarkings(center: Offset, radius: Float) {
     val scaleMarkings = 10
     for (i in -scaleMarkings..scaleMarkings) {
@@ -83,11 +85,7 @@ private fun DrawScope.drawScaleMarkings(center: Offset, radius: Float) {
 }
 
 fun DrawScope.drawScaleLine(
-    center: Offset,
-    radius: Float,
-    markingRadius: Float,
-    angle: Float,
-    i: Int
+    center: Offset, radius: Float, markingRadius: Float, angle: Float, i: Int
 ) {
     val start = Offset(
         x = center.x + radius * sin(Math.toRadians(angle.toDouble() + 180.0)).toFloat(),
@@ -107,20 +105,29 @@ fun DrawScope.drawScaleLine(
 
 private fun DrawScope.drawNeedle(center: Offset, needleHeight: Float, centsOff: Float) {
     val needleWidth = 4.dp.toPx()
-    val needleHeadRadius = needleWidth / 2 // Adjust needle head radius
-    rotate(degrees = 180f * centsOff / 50f, pivot = center, block = {
+    val needleHeadRadius = needleWidth / 2
+
+    val color = Color.Red
+    val centsOff = when {
+        centsOff < -50 -> -50f
+        centsOff > 50 -> 50f
+        else -> centsOff
+    }
+
+    rotate(degrees = 90f * centsOff / 50f, pivot = center, block = {
         drawLine(
-            color = Color.Red,
+            color = color,
             start = center,
-            end = Offset(x = center.x, y = center.y - needleHeight + needleHeadRadius), // Adjust needle end point
+            end = Offset(
+                x = center.x,
+                y = center.y - needleHeight + needleHeadRadius
+            ),
             strokeWidth = needleWidth
         )
-        // Draw a circle to represent the needle head
         drawCircle(
-            color = Color.Red,
+            color = color,
             radius = needleHeadRadius,
             center = Offset(x = center.x, y = center.y - needleHeight + needleHeadRadius),
-            //style = Stroke(width = needleHeadRadius * 2)
         )
     })
 }
@@ -129,5 +136,5 @@ private fun DrawScope.drawNeedle(center: Offset, needleHeight: Float, centsOff: 
 @Composable
 @Preview(showBackground = true)
 fun EnhancedTuningMeterPreview() {
-    TuningMeter(centsOff = -10f)
+    TuningMeter(centsOff = 90f)
 }

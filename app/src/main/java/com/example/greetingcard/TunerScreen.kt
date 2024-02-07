@@ -38,10 +38,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.greetingcard.audioprocessing.AudioController
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.sin
-import kotlin.random.Random
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -79,7 +77,7 @@ fun TunerScreen() {
 
             LaunchedEffect(Unit) {
                 phase.animateTo(
-                    targetValue = (phase.value + 2*PI).toFloat(), // Increment phase to move the wave
+                    targetValue = (phase.value + 2 * PI).toFloat(), // Increment phase to move the wave
                     animationSpec = infiniteRepeatable(
                         animation = tween(durationMillis = 1000, easing = LinearEasing),
                         repeatMode = RepeatMode.Restart
@@ -124,7 +122,9 @@ fun TunerScreen() {
             Button(onClick = {
                 isTuning = !isTuning
                 if (isTuning) {
-                    AudioController.startRecording(context = context, onPitchDetected = { pitch = it })
+                    AudioController.startRecording(
+                        context = context,
+                        onPitchDetected = { pitch = it.let { if (it.isNaN()) 0f else it } })
                 }
 
             }) {
@@ -137,7 +137,10 @@ fun TunerScreen() {
 
 @Composable
 fun FrequencyWave(frequency: Float, phase: Float) {
-    Canvas(modifier = Modifier.fillMaxWidth().padding(20.dp).height(200.dp)) {
+    Canvas(modifier = Modifier
+        .fillMaxWidth()
+        .padding(20.dp)
+        .height(200.dp)) {
         val waveHeight = size.height / 2
         val waveWidth = size.width
 
@@ -145,7 +148,7 @@ fun FrequencyWave(frequency: Float, phase: Float) {
             val tmp = x.toFloat() / waveWidth.toInt().toFloat()
             val m: Float = (1 - (tmp - PI) * (tmp - PI) / PI * PI).toFloat()
             val angle = (2 * Math.PI * frequency * (x / waveWidth) + phase).toFloat()
-            val y = waveHeight - (waveHeight * sin(angle)/m)
+            val y = waveHeight - (waveHeight * sin(angle) / m)
             drawCircle(
                 color = Color.Blue,
                 center = Offset(x.toFloat(), y),
