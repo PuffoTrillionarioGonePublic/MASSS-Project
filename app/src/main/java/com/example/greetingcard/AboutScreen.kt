@@ -19,9 +19,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,10 +38,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen() {
-    // Use a scrollable Column to accommodate more content gracefully
-    Column(
+fun AboutScreen(navController: NavController? = null) {/*    Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .fillMaxSize()
@@ -46,7 +54,6 @@ fun AboutScreen() {
         Text(text = "About PuffoTuner", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Use Card for better presentation of each author
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp)
@@ -61,23 +68,78 @@ fun AboutScreen() {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Add an engaging feature, like an animated visual representation
-        // Assuming you have an AnimatedImageComposable defined elsewhere
         AnimatedImageComposable()
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Brief description or purpose of the app
         Text(
-            text = "Our app aims to revolutionize the way users interact with XYZ, providing intuitive design and cutting-edge features.",
+            text = "PuffoTuner is an Android application designed for musicians and enthusiasts who seek precision in tuning their instruments. It provides a modern and intuitive user interface that simplifies the tuning process. The app uses advanced audio processing techniques to accurately detect pitch in real-time, that let accommodate various tuning standards.",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Credits or additional info
         Text("© 2024 PuffoTrillionario. All rights reserved.", style = MaterialTheme.typography.bodySmall)
+    }*/
+
+    Scaffold(topBar = {
+        TopAppBar(title = { Text("About") }, navigationIcon = {
+            IconButton(onClick = { navController?.navigateUp() }) {
+                Icon(Icons.Filled.ArrowBack, "Back")
+            }
+        })
+    }) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = "About Our App",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        "Developed By",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("Lorenzo Catoni", style = MaterialTheme.typography.titleMedium)
+                    Text("Leonardo Giovannoni", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            AnimatedImageComposable()
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "PuffoTuner is an Android application designed for musicians and enthusiasts who seek precision in tuning their instruments. It provides a modern and intuitive user interface that simplifies the tuning process. The app uses advanced audio processing techniques to accurately detect pitch in real-time, that let accommodate various tuning standards.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                "© 2024 Lorenzo and Leonardo. All rights reserved.",
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }
 
@@ -85,11 +147,8 @@ fun AboutScreen() {
 fun AnimatedImageComposable() {
     val infiniteTransition = rememberInfiniteTransition()
     val angle by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(10000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+        initialValue = 0f, targetValue = 360f, animationSpec = infiniteRepeatable(
+            animation = tween(10000, easing = LinearEasing), repeatMode = RepeatMode.Restart
         )
     )
 

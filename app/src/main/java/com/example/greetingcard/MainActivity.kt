@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "tunerScreen") {
                         composable("tunerScreen") { TunerScreen(navController) }
-                        composable("aboutScreen") { AboutScreen() }
+                        composable("aboutScreen") { AboutScreen(navController) }
                     }
                 }
             }
