@@ -47,9 +47,7 @@ class MainActivity : AppCompatActivity() {
                     .collectAsStateWithLifecycle()
 
                 if (drawerOpen) {
-                    // Open drawer and reset state in VM.
                     LaunchedEffect(Unit) {
-                        // wrap in try-finally to handle interruption whiles opening drawer
                         try {
                             drawerState.open()
                         } finally {
@@ -60,9 +58,7 @@ class MainActivity : AppCompatActivity() {
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                 //   border = BorderStroke(1.dp, Color.Black),
                 ) {
-                    //TunerScreen()
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "tunerScreen") {
                         composable("tunerScreen") { TunerScreen(navController) }

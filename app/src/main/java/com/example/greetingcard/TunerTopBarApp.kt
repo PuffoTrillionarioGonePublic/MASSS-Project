@@ -60,8 +60,6 @@ fun TunerAppBar(
                     onDismissRequest = { showMenu = false },
                     modifier = Modifier.background(Color.Transparent)
                 ) {
-                    DropdownMenuItem(onClick = { }, text = { Text("Settings") } )
-                   // DropdownMenuItem(onClick = { }, text = { Text("About") } )
                     DropdownMenuItem(onClick = {
                         showMenu = false
                         navController?.navigate("aboutScreen")
