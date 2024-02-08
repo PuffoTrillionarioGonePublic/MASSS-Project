@@ -26,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,26 +35,42 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.greetingcard.audioprocessing.AudioController
+import com.example.greetingcard.audioprocessing.frequencyToNote
 import kotlinx.coroutines.delay
 import kotlin.math.PI
+import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sin
+import kotlin.math.tanh
+
+
+fun normalizeAndClampFrequency(frequency: Float, min: Float, max: Float): Float {
+    val mid = (min + max) / 2
+    val range = (max - min) / 2
+    return range * tanh((frequency - mid) / range) + range + 1
+}
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun TunerScreen() {
-    var referencePitch by remember { mutableStateOf(440f) }
+fun TunerScreen(
+    navController: NavController? = null,
+    initialReferencePitch: Float = 440f,
+    lowerPitch: Float = 430f,
+    upperPitch: Float = 450f,
+    title: String = "PuffoTuner",
+) {
+    var referencePitch by remember { mutableStateOf(initialReferencePitch) }
     var isTuning by remember { mutableStateOf(false) }
     var pitch by remember { mutableStateOf(0f) }
-    val scope = rememberCoroutineScope()
-
-
     Scaffold(topBar = {
-        TunerAppBar(title = "PuffoTuner", onNavIconPressed = { })//activityViewModel.openDrawer() })
+        TunerAppBar(title = title, modifier = Modifier.fillMaxWidth(), navController = navController)
     }) {
+
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -63,15 +78,23 @@ fun TunerScreen() {
 
             Slider(
                 value = referencePitch,
-                onValueChange = { referencePitch = it },
-                valueRange = 430f..450f,
-                steps = 20
+                onValueChange = { referencePitch = it.roundToInt().toFloat() },
+                valueRange = lowerPitch..upperPitch,
+                steps = 20,
             )
             Text(text = "$referencePitch Hz", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(20.dp))
-            TuningMeter(centsOff = if (isTuning) pitch - referencePitch else 0f)
-
-            //var frequency by remember { mutableStateOf(1f) }
+            TuningMeter(
+                centsOff = if (isTuning) pitch - referencePitch else 0f,
+                needleColor = Color.Red,
+                arcColors = listOf(Color.Red, Color.Green, Color.Red),
+                scaleMarkingColors = listOf(Color.DarkGray, Color.LightGray),
+                scaleMarkings = 10,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(16.dp)
+            )
             val animatableFrequency = remember { Animatable(pitch) }
             val phase = remember { Animatable(0f) }
 
@@ -88,12 +111,13 @@ fun TunerScreen() {
 
             LaunchedEffect(pitch) {
                 animatableFrequency.animateTo(
-                    targetValue = pitch,
-                    animationSpec = tween(durationMillis = 1000) // Smooth transition over 1 second
+                    targetValue = pitch, animationSpec = tween(durationMillis = 1000)
                 )
             }
             if (isTuning) {
-                FrequencyWave(frequency = animatableFrequency.value, phase = phase.value)
+                val normalizedFrequency =
+                    normalizeAndClampFrequency(pitch, lowerPitch, upperPitch)
+                FrequencyWave(frequency = normalizedFrequency, phase = phase.value)
             } else {
                 FrequencyWave(frequency = 0f, phase = 0f)
             }
@@ -117,13 +141,13 @@ fun TunerScreen() {
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-            NoteIndicator(note = "A")
+            val note = frequencyToNote(pitch.toDouble())
+            NoteIndicator(note = if (isTuning || pitch == 0f) note.prettyPrintItalian() else "-")
             val context = LocalContext.current
             Button(onClick = {
                 isTuning = !isTuning
                 if (isTuning) {
-                    AudioController.startRecording(
-                        context = context,
+                    AudioController.startRecording(context = context,
                         onPitchDetected = { pitch = it.let { if (it.isNaN()) 0f else it } })
                 }
 
@@ -135,32 +159,45 @@ fun TunerScreen() {
     }
 }
 
+
 @Composable
-fun FrequencyWave(frequency: Float, phase: Float) {
-    Canvas(modifier = Modifier
-        .fillMaxWidth()
-        .padding(20.dp)
-        .height(200.dp)) {
+fun FrequencyWave(
+    frequency: Float, phase: Float, waveColor: Color = Color.Blue, strokeWidth: Float = 4f
+) {
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+            .height(200.dp)
+    ) {
         val waveHeight = size.height / 2
         val waveWidth = size.width
 
-        for (x in 0 until waveWidth.toInt()) {
-            val tmp = x.toFloat() / waveWidth.toInt().toFloat()
-            val m: Float = (1 - (tmp - PI) * (tmp - PI) / PI * PI).toFloat()
+        val centerX = waveWidth / 2
+        var i = 0
+        while (i < waveWidth.toInt() * 6) {
+            val x = i.toFloat() / 6
             val angle = (2 * Math.PI * frequency * (x / waveWidth) + phase).toFloat()
-            val y = waveHeight - (waveHeight * sin(angle) / m)
+            val tmp = (-(x - centerX).pow(2) / waveWidth.pow(2) + 1)
+            val amplitudeModifier = tmp * tmp
+            val y = waveHeight - (waveHeight * sin(angle) * amplitudeModifier)
             drawCircle(
-                color = Color.Blue,
-                center = Offset(x.toFloat(), y),
-                radius = 2f,
-                style = Stroke(1f)
+                color = waveColor, center = Offset(x, y), radius = 2f, style = Stroke(strokeWidth)
             )
+            i += 1
         }
+
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    TunerScreen()
+    TunerScreen(
+        initialReferencePitch = 440f,
+        lowerPitch = 430f,
+        upperPitch = 450f,
+        title = "PuffoTuner"
+    )
 }

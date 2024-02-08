@@ -25,19 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 
 @Composable
 fun TunerAppBar(
     modifier: Modifier = Modifier,
+    navController: NavController? = null,
     title: String,
-    onNavIconPressed: () -> Unit = {}, // You might not need this anymore
-    actions: @Composable RowScope.() -> Unit = {}
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
     Surface(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = modifier,
         color = Color.Gray.copy(alpha = 0.2f)
     ) {
         Row(
@@ -61,17 +60,12 @@ fun TunerAppBar(
                     onDismissRequest = { showMenu = false },
                     modifier = Modifier.background(Color.Transparent)
                 ) {
-                    DropdownMenuItem(onClick = {
-                        // Handle menu item click
-                        showMenu = false
-                    },
-                        text = { Text("Settings") }
-                    )
+                    DropdownMenuItem(onClick = { }, text = { Text("Settings") } )
+                   // DropdownMenuItem(onClick = { }, text = { Text("About") } )
                     DropdownMenuItem(onClick = {
                         showMenu = false
-                    },
-                        text = { Text("Help") }
-                    )
+                        navController?.navigate("aboutScreen")
+                    }, text = { Text("About") })
                 }
             }
         }
@@ -81,5 +75,5 @@ fun TunerAppBar(
 @Preview
 @Composable
 fun TunerAppBarPreview() {
-    TunerAppBar(title = "Tuner")
+    TunerAppBar(title = "Tuner", modifier = Modifier.fillMaxWidth())
 }

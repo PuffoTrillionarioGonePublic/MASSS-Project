@@ -15,81 +15,128 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import kotlin.math.ln
+import kotlin.math.roundToInt
+
+
+enum class Tone {
+    C, D, E, F, G, A, B,
+}
+
+enum class Semitone {
+    NATURAL, SHARP, FLAT;
+
+    override fun toString(): String {
+        return when (this) {
+            NATURAL -> ""
+            SHARP -> "♯"
+            FLAT -> "♭"
+        }
+    }
+}
+
+data class Note(
+    val tone: Tone,
+    val semitone: Semitone,
+    val octave: Int
+) {
+    fun prettyPrintItalian(): String {
+        val toneName = when (tone) {
+            Tone.C -> "Do"
+            Tone.D -> "Re"
+            Tone.E -> "Mi"
+            Tone.F -> "Fa"
+            Tone.G -> "Sol"
+            Tone.A -> "La"
+            Tone.B -> "Si"
+        }
+        return "$toneName$semitone"
+    }
+}
+
+fun frequencyToNote(frequency: Double): Note {
+    val semitoneFromA4 = 12 * ln(frequency / 440.0) / ln(2.0)
+    val roundedSemitone = semitoneFromA4.roundToInt()
+    var totalSemitonesFromC0 = roundedSemitone + 9 + (4 * 12) // C0 is 9 semitones below A4, plus 4 octaves
+    val octave = totalSemitonesFromC0 / 12
+    while (totalSemitonesFromC0 < 0) {
+        totalSemitonesFromC0 += 12
+    }
+    val toneAndSemitone = when (totalSemitonesFromC0 % 12) {
+        0 -> Pair(Tone.C, Semitone.NATURAL)
+        1 -> Pair(Tone.C, Semitone.SHARP)
+        2 -> Pair(Tone.D, Semitone.NATURAL)
+        3 -> Pair(Tone.D, Semitone.SHARP)
+        4 -> Pair(Tone.E, Semitone.NATURAL)
+        5 -> Pair(Tone.F, Semitone.NATURAL)
+        6 -> Pair(Tone.F, Semitone.SHARP)
+        7 -> Pair(Tone.G, Semitone.NATURAL)
+        8 -> Pair(Tone.G, Semitone.SHARP)
+        9 -> Pair(Tone.A, Semitone.NATURAL)
+        10 -> Pair(Tone.A, Semitone.SHARP)
+        11 -> Pair(Tone.B, Semitone.NATURAL)
+        else -> {
+            throw IllegalArgumentException("Invalid note index")
+        }
+    }
+
+    return Note(
+        tone = toneAndSemitone.first,
+        semitone = toneAndSemitone.second,
+        octave = octave
+    )
+}
+
+
 
 
 object AudioController {
 
     private val MY_PERMISSIONS_RECORD_AUDIO = 1
 
+
     fun startRecording(context: Context, onPitchDetected: (Float) -> Unit) {
+        if (ContextCompat.checkSelfPermission(
+                context, Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                context as Activity,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                MY_PERMISSIONS_RECORD_AUDIO
+            )
+            return
+        }
+
         CoroutineScope(Dispatchers.IO).launch {
-            val sampleRate = 44100 // You can choose a different sample rate
+            val sampleRate = 44100
             val channelConfig = AudioFormat.CHANNEL_IN_MONO
             val audioFormat = AudioFormat.ENCODING_PCM_16BIT
             val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.RECORD_AUDIO
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    context as Activity,
-                    arrayOf(Manifest.permission.RECORD_AUDIO),
-                    MY_PERMISSIONS_RECORD_AUDIO
-                )
-            }
-            val audioRecord = AudioRecord(
-                MediaRecorder.AudioSource.MIC,
-                sampleRate,
-                channelConfig,
-                audioFormat,
-                minBufferSize
-            )
-
-
-            val buffer = ByteArray(minBufferSize)
-            val outputStream = ByteArrayOutputStream()
 
             try {
+                val audioRecord = AudioRecord(
+                    MediaRecorder.AudioSource.MIC,
+                    sampleRate,
+                    channelConfig,
+                    audioFormat,
+                    minBufferSize
+                )
                 audioRecord.startRecording()
+                val buffer = ShortArray(minBufferSize)
 
-                val shortBuffer = ShortArray(minBufferSize)
-                val doubleBuffer = DoubleArray(minBufferSize)
-                var doubleBuffer2 = DoubleArray(minBufferSize)
-                var shortBuffer2 = ShortArray(minBufferSize)
-                while (audioRecord.read(shortBuffer, 0, minBufferSize) > 0) {
-                    for (i in shortBuffer.indices) {
-                        doubleBuffer[i] = shortBuffer[i].toDouble()
-                    }
-                    if (doubleBuffer2.size != minBufferSize) {
-                        doubleBuffer2 = DoubleArray(minBufferSize)
-                        shortBuffer2 = ShortArray(minBufferSize)
-                    }
-                    System.arraycopy(doubleBuffer, 0, doubleBuffer2, 0, minBufferSize)
-                    System.arraycopy(shortBuffer, 0, shortBuffer2, 0, minBufferSize)
-                   // for (i in doubleBuffer.indices) {
-                    //    f(shortBuffer2[i], doubleBuffer2[i])
-                    //}
-                    //(shortBuffer2, doubleBuffer2)
-                    //PitchDetector.detectPitch(shortBuffer2, doubleBuffer2, onPitchDetected)
-                    val floatBuffer = doubleBuffer.map { it.toFloat() }.toFloatArray()
+                while (audioRecord.read(buffer, 0, minBufferSize) > 0) {
+                    val floatBuffer = buffer.map { it.toFloat() }.toFloatArray()
                     val pitch = yinPitchDetection(floatBuffer, sampleRate)
                     onPitchDetected(pitch)
                 }
 
-                audioRecord.stop()
-
-                // At this point, outputStream.toByteArray() contains the recorded audio data in memory
-                val audioData = outputStream.toByteArray()
-
+            } catch (e: IllegalStateException) {
+                Log.e("AudioRecord", "Recording failed: ${e.message}")
             } catch (e: IOException) {
-                Log.e("AudioRecord", "Recording failed")
-            } finally {
-                audioRecord.release()
-                outputStream.close()
+                Log.e("AudioRecord", "IO Exception: ${e.message}")
             }
         }
-
     }
 
 

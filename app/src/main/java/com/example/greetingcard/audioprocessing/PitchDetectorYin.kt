@@ -7,12 +7,6 @@ import kotlin.math.pow
 const val DEFAULT_THRESHOLD = 0.20f
 
 
-const val FORMAT = 2
-const val CHANNELS = 1
-const val RATE = 44100
-const val CHUNK = 1024
-
-
 fun parabolicInterpolation(yinBuffer: FloatArray, tau: Int): Float {
     if (tau == yinBuffer.size) {
         return tau.toFloat()
@@ -83,12 +77,10 @@ fun absoluteThreshold(yinBuffer: FloatArray, threshold: Float): Int {
 }
 
 
-fun yinPitchDetection(buffer: FloatArray, sr: Int): Float {
+fun yinPitchDetection(buffer: FloatArray, sr: Int, threshold: Float = DEFAULT_THRESHOLD): Float {
     val wLen = buffer.size
-    val threshold = 0.2f
-    val tauRange = (sr * 0.02).toInt()  // 20 ms search window
+    val tauRange = (sr * 0.02).toInt()
 
-    // Difference function
     val diff = FloatArray(tauRange)
     for (tau in 0 until tauRange) {
         var sum = 0.0f
@@ -104,7 +96,6 @@ fun yinPitchDetection(buffer: FloatArray, sr: Int): Float {
 
     val betterTau = parabolicInterpolation(cmndf, tau)
 
-    // Convert to frequency
     return sr.toFloat() / betterTau
 }
 

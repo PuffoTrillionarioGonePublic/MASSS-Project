@@ -23,6 +23,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.greetingcard.ui.theme.GreetingCardTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -59,7 +62,12 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                  //   border = BorderStroke(1.dp, Color.Black),
                 ) {
-                    TunerScreen()
+                    //TunerScreen()
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "tunerScreen") {
+                        composable("tunerScreen") { TunerScreen(navController) }
+                        composable("aboutScreen") { AboutScreen() }
+                    }
                 }
             }
         }

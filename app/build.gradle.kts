@@ -72,5 +72,9 @@ dependencies {
     //implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     //implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
+    //dependencies {
+    //    implementation "androidx.navigation:navigation-compose:2.4.0-beta01" // Check for the latest version
+    //}
+    implementation("androidx.navigation:navigation-compose:2.4.0-beta01")
 
 }
