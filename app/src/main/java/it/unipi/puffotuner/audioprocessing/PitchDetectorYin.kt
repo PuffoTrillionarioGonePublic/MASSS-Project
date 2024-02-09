@@ -1,4 +1,4 @@
-package com.example.greetingcard.audioprocessing
+package it.unipi.puffotuner.audioprocessing
 
 import kotlin.math.absoluteValue
 import kotlin.math.pow

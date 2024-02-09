@@ -1,4 +1,4 @@
-package com.example.greetingcard.ui.theme
+package it.unipi.puffotuner.ui.theme
 
 import android.app.Activity
 import android.os.Build

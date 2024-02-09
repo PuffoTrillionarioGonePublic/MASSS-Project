@@ -1,4 +1,4 @@
-package com.example.greetingcard
+package it.unipi.puffotuner
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -39,50 +39,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import it.unipi.puffotuner.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen(navController: NavController? = null) {/*    Column(
-        modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(text = "About PuffoTuner", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Developed By", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(10.dp))
-                Text("Lorenzo Catoni", style = MaterialTheme.typography.titleMedium)
-                Text("Leonardo Giovannoni", style = MaterialTheme.typography.titleMedium)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        AnimatedImageComposable()
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "PuffoTuner is an Android application designed for musicians and enthusiasts who seek precision in tuning their instruments. It provides a modern and intuitive user interface that simplifies the tuning process. The app uses advanced audio processing techniques to accurately detect pitch in real-time, that let accommodate various tuning standards.",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text("© 2024 PuffoTrillionario. All rights reserved.", style = MaterialTheme.typography.bodySmall)
-    }*/
-
+fun AboutScreen(navController: NavController? = null) {
     Scaffold(topBar = {
         TopAppBar(title = { Text("About") }, navigationIcon = {
             IconButton(onClick = { navController?.navigateUp() }) {

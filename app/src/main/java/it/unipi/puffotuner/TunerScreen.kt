@@ -1,4 +1,4 @@
-package com.example.greetingcard
+package it.unipi.puffotuner
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.Animatable
@@ -36,8 +36,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.greetingcard.audioprocessing.AudioController
-import com.example.greetingcard.audioprocessing.frequencyToNote
+import it.unipi.puffotuner.audioprocessing.AudioController
+import it.unipi.puffotuner.audioprocessing.frequencyToNote
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.pow

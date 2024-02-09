@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Greeting Card"
+rootProject.name = "PuffoTuner"
 include(":app")
  

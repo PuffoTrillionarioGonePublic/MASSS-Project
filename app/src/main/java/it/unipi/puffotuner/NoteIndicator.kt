@@ -1,4 +1,4 @@
-package com.example.greetingcard
+package it.unipi.puffotuner
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth

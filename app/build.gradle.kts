@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    namespace = "com.example.greetingcard"
+    namespace = "it.unipi.puffotuner"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.greetingcard"
-        minSdk = 24
+        applicationId = "it.unipi.puffotuner"
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -51,6 +51,7 @@ android {
 
 dependencies {
 
+
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 
@@ -76,5 +77,4 @@ dependencies {
     //    implementation "androidx.navigation:navigation-compose:2.4.0-beta01" // Check for the latest version
     //}
     implementation("androidx.navigation:navigation-compose:2.4.0-beta01")
-
 }

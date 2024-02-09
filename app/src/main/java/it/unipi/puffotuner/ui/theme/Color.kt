@@ -1,4 +1,4 @@
-package com.example.greetingcard.ui.theme
+package it.unipi.puffotuner.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

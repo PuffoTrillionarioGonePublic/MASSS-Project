@@ -1,4 +1,4 @@
-package com.example.greetingcard.audioprocessing
+package it.unipi.puffotuner.audioprocessing
 
 import android.Manifest
 import android.app.Activity
@@ -13,7 +13,6 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlin.math.ln
 import kotlin.math.roundToInt
