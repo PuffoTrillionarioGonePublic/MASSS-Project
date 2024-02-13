@@ -1,6 +1,7 @@
 package it.unipi.puffotuner
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,7 @@ fun TuningMeter(
     scaleMarkingColors: List<Color>,
     scaleMarkings: Int
 ) {
+    val isNight = isSystemInDarkTheme()
     Box(
         contentAlignment = Alignment.BottomCenter,
         modifier = modifier
@@ -50,7 +52,7 @@ fun TuningMeter(
             val needleHeight = size.height * 0.7f
 
             drawTuningArc(center, radius, strokeWeight, arcColors)
-            drawScaleMarkings(center, radius, scaleMarkings, scaleMarkingColors)
+            drawScaleMarkings(center, radius, scaleMarkings, scaleMarkingColors, isNight)
             drawNeedle(center, needleHeight, centsOff, needleColor)
             drawCircle(
                 brush = Brush.radialGradient(
@@ -119,8 +121,9 @@ private fun DrawScope.drawText(text: String, center: Offset, angle: Float, radiu
     )
 }
 
-private fun DrawScope.drawScaleMarkings(center: Offset, radius: Float, scaleMarkings: Int, colors: List<Color>) {
-    val textStyle = TextStyle(color = Color.Black, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+private fun DrawScope.drawScaleMarkings(center: Offset, radius: Float, scaleMarkings: Int, colors: List<Color>, isNight: Boolean) {
+    val color = if (isNight) Color.White else Color.Black
+    val textStyle = TextStyle(color = color, fontSize = 25.sp, fontWeight = FontWeight.Bold)
     for (i in -scaleMarkings..scaleMarkings) {
         val angle = -180f / (scaleMarkings * 2) * i
         val markingRadius = calculateMarkingRadius(i, radius)
