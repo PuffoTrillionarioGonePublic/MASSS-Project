@@ -129,11 +129,11 @@ private fun DrawScope.drawScaleMarkings(center: Offset, radius: Float, scaleMark
         val markingRadius = calculateMarkingRadius(i, radius)
         drawScaleLine(center, radius, markingRadius, angle, i, colors)
         when (i) {
-            -scaleMarkings -> drawText("-50", center, angle, radius*0.8f, textStyle)
-            -scaleMarkings / 2 -> drawText("-25", center, angle, radius*0.8f, textStyle)
+            -scaleMarkings -> drawText("50", center, angle, radius*0.8f, textStyle)
+            -scaleMarkings / 2 -> drawText("25", center, angle, radius*0.8f, textStyle)
             0 -> drawText("0", center, angle, radius*0.8f, textStyle)
-            scaleMarkings / 2 -> drawText("25", center, angle, radius*0.8f, textStyle)
-            scaleMarkings -> drawText("50", center, angle, radius*0.8f, textStyle)
+            scaleMarkings / 2 -> drawText("-25", center, angle, radius*0.8f, textStyle)
+            scaleMarkings -> drawText("-50", center, angle, radius*0.8f, textStyle)
         }
     }
 }

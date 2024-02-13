@@ -66,26 +66,6 @@ class MainActivity : AppCompatActivity() {
 }
 
 
-fun DrawScope.drawScaleText(center: Offset, radius: Float, angle: Float, i: Int) {
-    if (i % 5 == 0) {
-        val textRadius = radius - 35.dp.toPx()
-        val textOffset = Offset(
-            x = center.x + textRadius * sin(Math.toRadians(angle.toDouble() + 180.0)).toFloat(),
-            y = center.y + textRadius * cos(Math.toRadians(angle.toDouble() + 180.0)).toFloat()
-        )
-        drawContext.canvas.nativeCanvas.drawText(
-            "${i * 5}",
-            textOffset.x,
-            textOffset.y,
-            android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                textSize = 40f
-                textAlign = android.graphics.Paint.Align.CENTER
-            }
-        )
-    }
-}
-
-
 class MainViewModel : ViewModel() {
 
     private val _drawerShouldBeOpened = MutableStateFlow(false)
