@@ -141,7 +141,7 @@ fun TunerScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-            val note = frequencyToNote(pitch.toDouble())
+            val note = frequencyToNote(pitch.toDouble(), referencePitch.toDouble())
             NoteIndicator(note = if (isTuning || pitch == 0f) note.prettyPrintItalian() else "-")
             val context = LocalContext.current
             Button(onClick = {
