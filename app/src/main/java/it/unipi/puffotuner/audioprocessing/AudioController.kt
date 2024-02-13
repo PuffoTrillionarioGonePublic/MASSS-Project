@@ -56,12 +56,9 @@ data class Note(
 fun frequencyToNote(frequency: Double): Note {
     val semitoneFromA4 = 12 * ln(frequency / 440.0) / ln(2.0)
     val roundedSemitone = semitoneFromA4.roundToInt()
-    var totalSemitonesFromC0 = roundedSemitone + 9 + (4 * 12) // C0 is 9 semitones below A4, plus 4 octaves
+    val totalSemitonesFromC0 = roundedSemitone + 9 + (4 * 12) // C0 is 9 semitones below A4, plus 4 octaves
     val octave = totalSemitonesFromC0 / 12
-    while (totalSemitonesFromC0 < 0) {
-        totalSemitonesFromC0 += 12
-    }
-    val toneAndSemitone = when (totalSemitonesFromC0 % 12) {
+    val toneAndSemitone = when (totalSemitonesFromC0.mod(12)) {
         0 -> Pair(Tone.C, Semitone.NATURAL)
         1 -> Pair(Tone.C, Semitone.SHARP)
         2 -> Pair(Tone.D, Semitone.NATURAL)

@@ -97,7 +97,7 @@ fun AboutScreen(navController: NavController? = null) {
 
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                "© 2024 Lorenzo and Leonardo. All rights reserved.",
+                "© 2024 Puffo Trillionario. All rights reserved.",
                 style = MaterialTheme.typography.bodySmall
             )
         }

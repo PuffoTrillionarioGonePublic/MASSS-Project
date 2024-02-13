@@ -16,8 +16,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -81,13 +86,52 @@ private fun DrawScope.drawTuningArc(center: Offset, radius: Float, strokeWeight:
 private fun DrawScope.calculateMarkingRadius(i: Int, radius: Float): Float {
     return if (i % 5 == 0) radius - 20.dp.toPx() else radius - 10.dp.toPx()
 }
-
+/*
 private fun DrawScope.drawScaleMarkings(center: Offset, radius: Float, scaleMarkings: Int, colors: List<Color>) {
     for (i in -scaleMarkings..scaleMarkings) {
         val angle = -180f / (scaleMarkings * 2) * i
         val markingRadius = calculateMarkingRadius(i, radius)
         drawScaleLine(center, radius, markingRadius, angle, i, colors)
-        // drawScaleText can also be adjusted to accept custom parameters if needed
+    }
+}
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+*/
+private fun DrawScope.drawText(text: String, center: Offset, angle: Float, radius: Float, textStyle: TextStyle) {
+    val textPaint = android.graphics.Paint().apply {
+        color = textStyle.color?.toArgb() ?: android.graphics.Color.BLACK
+        textSize = textStyle.fontSize?.value ?: 12f
+        textAlign = android.graphics.Paint.Align.CENTER
+        typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT,
+            when (textStyle.fontWeight) {
+                FontWeight.Bold -> android.graphics.Typeface.BOLD
+                else -> android.graphics.Typeface.NORMAL
+            })
+    }
+
+    val x = center.x + radius * sin(Math.toRadians(angle.toDouble())).toFloat()
+    val y = center.y - radius * cos(Math.toRadians(angle.toDouble())).toFloat()
+
+    this.drawContext.canvas.nativeCanvas.drawText(
+        text, x, y, textPaint
+    )
+}
+
+private fun DrawScope.drawScaleMarkings(center: Offset, radius: Float, scaleMarkings: Int, colors: List<Color>) {
+    val textStyle = TextStyle(color = Color.Black, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+    for (i in -scaleMarkings..scaleMarkings) {
+        val angle = -180f / (scaleMarkings * 2) * i
+        val markingRadius = calculateMarkingRadius(i, radius)
+        drawScaleLine(center, radius, markingRadius, angle, i, colors)
+        when (i) {
+            -scaleMarkings -> drawText("-50", center, angle, radius*0.8f, textStyle)
+            -scaleMarkings / 2 -> drawText("-25", center, angle, radius*0.8f, textStyle)
+            0 -> drawText("0", center, angle, radius*0.8f, textStyle)
+            scaleMarkings / 2 -> drawText("25", center, angle, radius*0.8f, textStyle)
+            scaleMarkings -> drawText("50", center, angle, radius*0.8f, textStyle)
+        }
     }
 }
 
